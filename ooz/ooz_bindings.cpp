@@ -25,8 +25,33 @@ static PyObject* ooz_decompress(PyObject* self, PyObject* args) {
     return PyBytes_FromStringAndSize(reinterpret_cast<char const*>(dst.data()), dst_len);
 }
 
+int CompressBlock(int codec_id, uint8_t *src_in, uint8_t *dst_in, int src_size, int level,
+                  const void *compressopts, void *src_window_base, void *lrm);
+
+static PyObject* ooz_compress(PyObject* self, PyObject* args) {
+    int codec_id;
+    int level;
+    uint8_t* src_data;
+    Py_ssize_t src_len;
+
+    if (!PyArg_ParseTuple(args, "iiy#n", &codec_id, &level, &src_data, &src_len)) {
+        return nullptr;
+    }
+    std::vector<uint8_t> dst((size_t)src_len + 65536); // libooz main() allocates 65536 extra bytes
+    *(uint64_t*)(dst.data()) = src_len;
+    int rc = CompressBlock(codec_id, src_data, dst.data() + 8,
+                                static_cast<size_t>(src_len), level, nullptr, nullptr, nullptr);
+
+    if (rc < 0) {
+        PyErr_SetString(PyExc_RuntimeError, "Could not compress requested amount");
+        return nullptr;
+    }
+    return PyBytes_FromStringAndSize(reinterpret_cast<char const*>(dst.data()), rc + 8);
+}
+
 static PyMethodDef OozMethods[] = {
     {"decompress", ooz_decompress, METH_VARARGS, "Decompress a block of data."},
+    {"compress", ooz_compress, METH_VARARGS, "Compress a block of data."},
     {nullptr, nullptr, 0, nullptr},
 };
 
