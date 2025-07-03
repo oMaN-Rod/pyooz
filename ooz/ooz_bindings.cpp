@@ -41,7 +41,8 @@ static PyObject* ooz_compress(PyObject* self, PyObject* args) {
         return nullptr;
     }
     std::vector<uint8_t> dst((size_t)src_len + 65536); // libooz main() allocates 65536 extra bytes
-    *(uint64_t*)(dst.data()) = src_len;
+    uint64_t temp = src_len;
+    std::memcpy(dst.data(), &temp, sizeof(temp));
     int rc = CompressBlock(codec_id, src_data, dst.data(),
                                 static_cast<size_t>(src_len), level, nullptr, nullptr, nullptr);
 
