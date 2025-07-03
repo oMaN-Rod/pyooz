@@ -7,6 +7,14 @@ ooz_sources = [
         "bitknit.cpp",
         "kraken.cpp",
         "lzna.cpp",
+        "compress.cpp",
+        "compr_kraken.cpp",
+        "compr_leviathan.cpp",
+        "compr_mermaid.cpp",
+        "compr_entropy.cpp",
+        "compr_match_finder.cpp",
+        "compr_multiarray.cpp",
+        "compr_tans.cpp",
     ]
 ]
 
