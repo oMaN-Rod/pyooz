@@ -42,14 +42,14 @@ static PyObject* ooz_compress(PyObject* self, PyObject* args) {
     }
     std::vector<uint8_t> dst((size_t)src_len + 65536); // libooz main() allocates 65536 extra bytes
     *(uint64_t*)(dst.data()) = src_len;
-    int rc = CompressBlock(codec_id, src_data, dst.data() + 8,
+    int rc = CompressBlock(codec_id, src_data, dst.data(),
                                 static_cast<size_t>(src_len), level, nullptr, nullptr, nullptr);
 
     if (rc < 0) {
         PyErr_SetString(PyExc_RuntimeError, "Could not compress requested amount");
         return nullptr;
     }
-    return PyBytes_FromStringAndSize(reinterpret_cast<char const*>(dst.data()), rc + 8);
+    return PyBytes_FromStringAndSize(reinterpret_cast<char const*>(dst.data()), rc);
 }
 
 static PyMethodDef OozMethods[] = {
