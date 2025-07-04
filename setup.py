@@ -18,6 +18,10 @@ ooz_sources = [
     ]
 ]
 
+extra_compile_args = ['-O2']
+if os.environ.get('DEBUG') == '1':
+    extra_compile_args = ['-g', '-O0']
+    
 ext_modules = [
     Extension(
         name='ooz',
@@ -27,6 +31,7 @@ ext_modules = [
             ('Py_LIMITED_API', 0x03080000),
         ],
         include_dirs=['ooz/dep/ooz/simde'],
+        extra_compile_args=extra_compile_args,
         py_limited_api=True,
     ),
 ]

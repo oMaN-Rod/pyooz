@@ -36,18 +36,24 @@ static PyObject* ooz_compress(PyObject* self, PyObject* args) {
     int level;
     uint8_t* src_data;
     Py_ssize_t src_len;
+    Py_ssize_t dst_len;
 
-    if (!PyArg_ParseTuple(args, "iiy#n", &codec_id, &level, &src_data, &src_len)) {
+    if (!PyArg_ParseTuple(args, "iiy#n", &codec_id, &level, &src_data, &src_len, &dst_len)) {
         return nullptr;
     }
-    std::vector<uint8_t> dst((size_t)src_len + 65536); // libooz main() allocates 65536 extra bytes
-    uint64_t temp = src_len;
-    std::memcpy(dst.data(), &temp, sizeof(temp));
-    int rc = CompressBlock(codec_id, src_data, dst.data(),
-                                static_cast<size_t>(src_len), level, nullptr, nullptr, nullptr);
 
-    if (rc < 0) {
-        PyErr_SetString(PyExc_RuntimeError, "Could not compress requested amount");
+    if (!src_data || src_len <= 0) {
+        PyErr_SetString(PyExc_ValueError, "Invalid input data.");
+        return nullptr;
+    }
+
+    size_t dst_capacity = static_cast<size_t>(src_len) + 65536; // libooz main() allocates 65536 extra bytes
+    std::vector<uint8_t> dst(dst_capacity);
+
+    int rc = CompressBlock(codec_id, src_data, dst.data(), src_len, level, nullptr, nullptr, nullptr);
+
+    if (rc < 0 || rc > static_cast<int>(dst_capacity)) {
+        PyErr_SetString(PyExc_RuntimeError, "Compression failed or invalid output size");
         return nullptr;
     }
     return PyBytes_FromStringAndSize(reinterpret_cast<char const*>(dst.data()), rc);
